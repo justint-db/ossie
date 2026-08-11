@@ -43,13 +43,5 @@ repository = "https://github.com/apache/ossie/"
 [tool.hatch.build.targets.wheel]
 packages = ["src/ossie"]
 
-[dependency-groups]
-dev = [
-    "pytest>=8.0",
-    "mypy>=1.10",
-    "ruff>=0.11",
-    "types-PyYAML",
-]
-
 [tool.uv]
 required-version = ">=0.9.0"
