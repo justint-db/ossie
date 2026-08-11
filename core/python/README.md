@@ -2,7 +2,7 @@
 
 A [SQLGlot](https://github.com/tobymao/sqlglot) dialect implementing the
 Ossie expression language defined in
-[`core-spec/expression_language.md`](../../../core-spec/expression_language.md)
+[`core-spec/expression_language.md`](../../core-spec/expression_language.md)
 ("Ossie_SQL_2026").
 
 This package covers only the expression grammar: a custom SQLGlot `Dialect`
@@ -53,5 +53,5 @@ Install the pre-commit hooks scoped to this package so `ruff format`,
 `ruff check`, and `mypy` run automatically before each commit:
 
 ```bash
-uv run pre-commit install -c python/ossie-sql/.pre-commit-config.yaml
+uv run pre-commit install -c core/python/.pre-commit-config.yaml
 ```
