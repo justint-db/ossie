@@ -88,7 +88,7 @@ Anything that falls outside these is explicitly deferred. §3 lists some deferre
 2. **Safe by default.** Where SQL would silently produce wrong results (fan-out, chasm trap), Ossie either disallows the operation or substitutes a safe rewrite. No query should compute a wrong answer because the author did not add a guard.
 3. **Additive extension path.** Every feature deferred to §10 is additive: adopting it does not require reworking anything in this initial base. A model that uses only this base remains valid under the full spec.
 4. **Declare intent, not execution.** Model authors describe *what* their data means (cardinality, referential integrity, relationship). The planner decides *how* to execute (join type, CTE structure, rollup order).
-5. **Trust-but-don't-validate.** Ossie trusts declared primary keys, unique keys, and referential integrity. Data-quality enforcement is upstream (ETL, dbt tests, etc.), not a semantic-layer concern.
+5. **Trust-but-don't-validate.** Ossie trusts declared primary keys, unique keys, and referential integrity. Data-quality enforcement is upstream (ETL, dbt tests, etc.), not a semantic-layer concern.  However, some providers may have knowledge about cardinality or referential integrity.  If that conflicts with the model, they should choose to return errors or to issue correct queries (and warn).
 
 ## 3. What is In / What is Out
 
@@ -456,7 +456,7 @@ Three rules cover every reference site:
 
 2. **Inside a dataset field expression**: bare names follow the precedence of (physical → logical → global). If a global name is shadowed by a local logical field, then it is not accessible from within a dataset field.
 
-3. **Inside a global-scoped metric expression**: the precedence acts the same as the query lookup.  It only looks at the global scope, so dataset local fields MUST be qualified to include the global dataset name, e.g. `dataset.field`. 
+3. **Inside a global-scoped metric expression**: the precedence acts the same as the query lookup.  It only looks at the global scope, so dataset local fields MUST be qualified to include the global dataset name, e.g. `dataset.field`.
 
 ## 5. Query Model
 
