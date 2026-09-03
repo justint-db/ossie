@@ -1252,3 +1252,63 @@ Interface terms:
   Transparent model with correctness-guaranteed measures; the interface shape adopted here.
 - Ossie proposal: [Layered Query Interface](https://docs.google.com/document/d/1FOtRNBu6UqA2yeOwUa4jt1r2v45BWQJqS5_BTk34a1c/edit).
   The Layer 1 / 2 / 3 framing of Section 1.1.
+
+---
+
+## Appendix D. Relationship to *Measures in SQL*
+
+This interface builds on the measure model of Hyde and Fremlin,
+[*Measures in SQL*](https://arxiv.org/abs/2406.00251). It keeps that model's core: the `T measure`
+column type, the transparent expansion of a measure into ordinary SQL, and closure (a relation
+with measures behaves like any other relation). The rest of this appendix records where it
+differs: naming and syntax, how a measure is evaluated, and some considerations for extending
+the proposal later.
+
+### Naming and syntax
+
+The evaluation function is `MEASURE()`, not the paper's `AGGREGATE()`. `AGGREGATE` already names a
+different function in some engines (in Databricks it is a higher-order function over arrays), and
+the evaluation function needs a name unlikely to collide with existing functions or reserved words
+across popular SQL engines.
+
+A measure is defined with `expr TO MEASURE AS name`, not the paper's `expr AS MEASURE name`.
+`AS MEASURE` is cleaner, but ambiguous: in standard SQL `expr AS measure` already means "give this
+column the alias `measure`."
+
+### Evaluating a measure
+
+A measure is evaluated only through `MEASURE()` (R2). The paper treats its `AGGREGATE()` wrapper
+as largely cosmetic: in an aggregate query a bare measure reference is evaluated implicitly. We
+require the explicit call, so the conversion of a `T measure` to a scalar `T` happens at one
+visible place. Further, in SQL, an aggregate function in the `SELECT`, `HAVING`, or `ORDER BY`
+clause is what turns a projection into an aggregation; a bare measure column that implicitly
+aggregates breaks that expectation, so requiring `MEASURE()` keeps the query syntactically
+ordinary SQL.
+
+`MEASURE()` evaluates a measure over exactly the rows the query selects, after its `WHERE` filters
+and joins (Guarantee G1). In contrast, the paper defaults to not applying the query's `WHERE` or
+joins to a measure; a consumer opts those in with `VISIBLE`. Applying the query's filters and
+joins by default matches standard SQL behavior.
+
+### Extending the proposal
+
+Grain manipulation is explicitly out of scope in this version (Section 5.3), so this proposal does
+not adopt the paper's `AT` operator or its consumer-modifiable *evaluation context* (a predicate
+over a measure's dimension columns, adjusted at the call site with `ALL`, `SET`, or `WHERE`). A
+measure here is anchored to its grain (Section 3.2) and evaluated only through `MEASURE()`.
+
+The functionality grain manipulation enables, such as percent of total and period over period, is
+important, and we recommend strongly that it be considered as a follow-up extension. Two things
+are worth considering in that design.
+
+**Encapsulation.** The paper encapsulates a measure's *formula*: a consumer uses a measure without
+seeing its definition or the tables it reads (Principle P2). We believe encapsulation should cover a
+measure's *meaning* as well: a measure has a single correct result for a given query, and a
+consumer can slice, dice, and combine measures but cannot reach in and change what a measure
+means. An extension should keep this property: a consumer evaluates a measure at additional
+contexts and combines the results, without escaping its definition.
+
+**Column identity.** The paper's `SET` and `ALL` modifiers identify filters by dimension, which
+requires deciding when two filters are on the same dimension. SQL has no general way to decide
+that two columns are the same, so a context modifier for this interface will need its own answer
+to that question.
